@@ -3,7 +3,7 @@
 # noinspection PyUnresolvedReferences
 a = Analysis(['main.py'],
              pathex=['/Users/melvyn/MenuPlaythrough'],
-             datas=[('imgs/icon.png', '.')],
+             datas=[('imgs/icon.png', '.'), ('LICENSE', '.')],
              hiddenimports=['numpy.core._dtype_ctypes'])
 
 # noinspection PyUnresolvedReferences
