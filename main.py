@@ -17,7 +17,7 @@
 
 
 # noinspection PyUnresolvedReferences
-from AppKit import NSBezierPath, NSColor, NSImage
+from AppKit import NSAlert, NSBezierPath, NSColor, NSImage, NSMakeRect, NSScrollView, NSTextView
 # noinspection PyUnresolvedReferences
 from Foundation import NSUserDefaults
 
@@ -71,7 +71,7 @@ class MenuPlaythroughApp(rumps.App):
         self.input_devices = rumps.MenuItem('Input')
         self.output_devices = rumps.MenuItem('Output')
         self.refresh_devices()
-        self.icon_toggle = rumps.MenuItem('Show activity')
+        self.icon_toggle = rumps.MenuItem('Show Activity')
         self.icon_toggle.set_callback(self.toggle_icon)
         self.icon_toggle.state = self.render_icon
         if self.render_icon:
@@ -82,6 +82,8 @@ class MenuPlaythroughApp(rumps.App):
                 self.icon = sys._MEIPASS[:len(sys._MEIPASS)-5] + 'Resources/icon.png'
             else:
                 self.icon = 'imgs/icon.png'
+        self.license_button = rumps.MenuItem('Show License')
+        self.license_button.set_callback(self.open_license)
         self.quit_button = None
         self.quit = rumps.MenuItem('Quit')
         self.quit.set_callback(self.exit)
@@ -95,6 +97,7 @@ class MenuPlaythroughApp(rumps.App):
                      self.output_devices,
                      None,
                      self.icon_toggle,
+                     self.license_button,
                      self.quit]
         self.stream = sd.Stream(callback=self.stream_callback)
         sd.set_device_changed_callback(self.full_refresh_devices)
@@ -218,6 +221,27 @@ class MenuPlaythroughApp(rumps.App):
             else:
                 self.icon = 'imgs/icon.png'
 
+    @staticmethod
+    def open_license(_):
+        print(0)
+        alert = NSAlert.alertWithMessageText_defaultButton_alternateButton_otherButton_informativeTextWithFormat_(
+            'License', None, None, None, 'GNU General Public License, version 3')
+        alert.setAlertStyle_(0)
+        textview = NSTextView.alloc().initWithFrame_(NSMakeRect(0, 0, 420, 180))
+        textview.setEditable_(False)
+        if getattr(sys, 'frozen', False):
+            # noinspection PyUnresolvedReferences
+            textview.setString_('\n' + open(sys._MEIPASS[:len(sys._MEIPASS) - 5] + 'Resources/LICENSE').read())
+        else:
+            textview.setString_('\n' + open('LICENSE').read())
+        sv = NSScrollView.alloc().initWithFrame_(textview.frame())
+        sv.setBorderType_(1)
+        sv.setHasVerticalScroller_(True)
+        sv.setAutoresizingMask_(2 | 16)
+        sv.setDocumentView_(textview)
+        alert.setAccessoryView_(sv)
+        alert.runModal()
+
     @rumps.timer(0.5)
     def stream_status_watcher(self, _):
         if self.started and not self.stream.active:
@@ -254,7 +278,6 @@ class MenuPlaythroughApp(rumps.App):
                 pass
 
 
-# noinspection PyUnresolvedReferences
 app = MenuPlaythroughApp()
 for s in [signal.SIGTERM, signal.SIGINT, signal.SIGABRT, signal.SIGIOT, signal.SIGQUIT]:
     signal.signal(s, app.exit)
